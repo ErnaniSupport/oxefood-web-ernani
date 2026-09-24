@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Breadcrumbs from "../../../shared/components/Breadcrumbs";
 import CrudActions from "../../../shared/components/CrudActions";
 import Footer from "../../../shared/components/Footer";
@@ -11,6 +12,8 @@ import { MAPPING_CONTROLLER_CLIENTE } from "../service/clienteService";
 export default function ClientePage() {
 
     const [lista, setLista] = useState([]);
+    const navigate = useNavigate();
+
 
     useEffect(() => {
 
@@ -25,7 +28,8 @@ export default function ClientePage() {
     }
 
     function editar(id) {
-        
+        navigate(`/cliente-form/${id}`);
+
     }
 
     async function confirmarRemover(id) {
@@ -35,11 +39,11 @@ export default function ClientePage() {
         }
     }
 
-   return (
+    return (
 
-       <div>
-        
-           <Menu />
+        <div>
+
+            <Menu />
 
             <Breadcrumbs items={[
                 { label: "Cliente" },
@@ -47,22 +51,22 @@ export default function ClientePage() {
             ]} />
 
             <div style={{ marginTop: '40px', marginLeft: '10%', marginRight: '10%' }}>
-                
+
                 <div className="overflow-x-auto shadow-sm">
-                    
-                    <div className="flex items-center justify-between mb-6" style={{marginTop: '20px', marginLeft: '10px', marginRight: '10px'}}>
+
+                    <div className="flex items-center justify-between mb-6" style={{ marginTop: '20px', marginLeft: '10px', marginRight: '10px' }}>
                         <h1 className="text-3xl font-bold text-gray-800">
                             Clientes
                         </h1>
                         <NewButton destino="/cliente-form" />
                     </div>
 
-                   <div className="divider divider-info" />
+                    <div className="divider divider-info" />
 
-                    <div className="overflow-x-auto" style={{marginTop: '30px'}}>
+                    <div className="overflow-x-auto" style={{ marginTop: '30px' }}>
                         <table className="table table-zebra">
                             <thead>
-                                <tr style={{textAlign: 'center'}}>
+                                <tr style={{ textAlign: 'center' }}>
                                     <th>Nome</th>
                                     <th>CPF</th>
                                     <th>Data de Nascimento</th>
@@ -72,10 +76,10 @@ export default function ClientePage() {
                             <tbody>
                                 {lista.map(cliente => (
                                     <tr key={cliente.id}>
-                                        <td style={{width: '50%'}}>{cliente.nome}</td>
-                                        <td style={{textAlign: 'center'}}>{cliente.cpf}</td>
-                                        <td style={{textAlign: 'center'}}>{formatarData(cliente.dataNascimento)}</td>
-                                        <td style={{textAlign: 'center'}}>
+                                        <td style={{ width: '50%' }}>{cliente.nome}</td>
+                                        <td style={{ textAlign: 'center' }}>{cliente.cpf}</td>
+                                        <td style={{ textAlign: 'center' }}>{formatarData(cliente.dataNascimento)}</td>
+                                        <td style={{ textAlign: 'center' }}>
                                             <CrudActions
                                                 onEdit={() => editar(cliente.id)}
                                                 onDelete={() => confirmarRemover(cliente.id)}
@@ -88,7 +92,7 @@ export default function ClientePage() {
                     </div>
                 </div>
             </div>
-           <Footer />
+            <Footer />
         </div>
     );
 }

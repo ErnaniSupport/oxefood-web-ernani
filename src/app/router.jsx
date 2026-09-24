@@ -14,9 +14,9 @@ export default function Router() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/home" element={<HomePage />} />
+                <Route path="/" element={<HomePage />} />
                 <Route path="/cliente" element={<ClientePage />} />
-                <Route path="/cliente-form" element={<ClienteForm />} />
+                <Route path="/cliente-form/:idCliente?" element={<ClienteForm />} />
                 <Route path="/empresa" element={<EmpresaPage />} />
                 <Route path="/empresa-form" element={<EmpresaForm />} />
                 <Route path="/categoria" element={<CategoriaPage />} />
