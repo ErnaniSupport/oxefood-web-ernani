@@ -26,7 +26,8 @@ export default function Menu() {
 
                 <button popoverTarget="menu-empresas"> <strong>Empresa</strong> </button>
                 <div id="menu-empresas" popover="auto"> 
-                    <ul className="menu"> <li><a href="/empresa">Listar</a></li> 
+                    <ul className="menu"> 
+                    <li><a href="/empresa">Listar</a></li> 
                     <li><a href="/empresa-form">Cadastrar</a></li> 
                     </ul> 
                 </div>
@@ -36,6 +37,14 @@ export default function Menu() {
                     <ul className="menu">
                         <li><a href="/produto">Listar</a></li>
                         <li><a href="/produto-form">Cadastrar</a></li>
+                    </ul>
+                </div>
+
+                <button popoverTarget="menu-categorias"> <strong> Categoria </strong> </button>
+                <div id="menu-categorias" popover="auto">
+                    <ul className="menu">
+                        <li><a href="/categoriaproduto">Listar</a></li>
+                        <li><a href="/categoriaproduto-form">Cadastrar</a></li>
                     </ul>
                 </div>
 

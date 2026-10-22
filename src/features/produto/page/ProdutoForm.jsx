@@ -1,16 +1,22 @@
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { useParams } from "react-router-dom";
+import { toast } from 'react-toastify';
 import BackButton from "../../../shared/components/BackButton";
 import Breadcrumbs from "../../../shared/components/Breadcrumbs";
 import Footer from "../../../shared/components/Footer";
 import Menu from "../../../shared/components/Menu";
 import SaveButton from "../../../shared/components/SaveButton";
-import { cadastrar, listar } from "../../../shared/services/crudService";
-import { MAPPING_CONTROLLER_PRODUTO } from "../service/produtoService";
-import { MAPPING_CONTROLLER_CATEGORIA } from "../../categoria/service/categoriaService";
+import { atualizar, buscarPorId, cadastrar, listar } from "../../../shared/services/crudService";
+import { MAPPING_CONTROLLER_CATEGORIA_PRODUTO } from "../../produto/service/categoriaProdutoService";
+import { MAPPING_CONTROLLER_PRODUTO } from "../../produto/service/produtoService";
 
 export default function ProdutoForm() {
+
+    const { idProduto } = useParams();
+    const [listaCategoria, setListaCategoria] = useState([]);
+
     const [produto, setProduto] = useState({
+        id: null,
         idCategoria: "",
         codigo: "",
         titulo: "",
@@ -20,244 +26,254 @@ export default function ProdutoForm() {
         tempoEntregaMaximo: ""
     });
 
-    const [categorias, setCategorias] = useState([]);
-
     useEffect(() => {
-        carregarCategorias();
-    }, []);
 
-    async function carregarCategorias() {
+        if (idProduto) {
+            carregarProduto();
+        }
+
+        carregarCategoriasProduto();
+
+    }, [idProduto]);
+
+    async function carregarProduto() {
+
         try {
-            const data = await listar(MAPPING_CONTROLLER_CATEGORIA);
-            setCategorias(data);
+
+            const data = await buscarPorId(
+                MAPPING_CONTROLLER_PRODUTO,
+                idProduto
+            );
+
+            setProduto({
+                id: data.id,
+                idCategoria: data.categoria.id ?? "",
+                codigo: data.codigo ?? "",
+                titulo: data.titulo ?? "",
+                descricao: data.descricao ?? "",
+                valorUnitario: data.valorUnitario ?? "",
+                tempoEntregaMinimo: data.tempoEntregaMinimo ?? "",
+                tempoEntregaMaximo: data.tempoEntregaMaximo ?? ""
+            });
+
         } catch (erro) {
-            toast.error("Erro ao carregar categorias.");
+
+            console.log(erro)
+            toast.error("Erro ao carregar o produto.");
+        }
+    }
+
+    async function carregarCategoriasProduto() {
+
+        try {
+
+            const data = await listar(MAPPING_CONTROLLER_CATEGORIA_PRODUTO);
+            setListaCategoria(data);
+
+        } catch (erro) {
+
+            console.log(erro)
+            toast.error("Erro ao carregar as categorias de produto.");
         }
     }
 
     async function salvar() {
+        
         try {
-            const dados = {
-                ...produto,
-                idCategoria: Number(produto.idCategoria),
-                valorUnitario: Number(produto.valorUnitario),
-                tempoEntregaMinimo: Number(produto.tempoEntregaMinimo),
-                tempoEntregaMaximo: Number(produto.tempoEntregaMaximo)
-            };
 
-            await cadastrar(MAPPING_CONTROLLER_PRODUTO, dados);
+            if (idProduto) {
 
-            toast.success("Produto cadastrado com sucesso!");
+                await atualizar(MAPPING_CONTROLLER_PRODUTO, produto);
+                toast.success("Produto alterado com sucesso!");
 
-            setProduto({
-                idCategoria: "",
-                codigo: "",
-                titulo: "",
-                descricao: "",
-                valorUnitario: "",
-                tempoEntregaMinimo: "",
-                tempoEntregaMaximo: ""
-            });
+            } else {
+
+                await cadastrar(MAPPING_CONTROLLER_PRODUTO, produto);
+                toast.success("Produto cadastrado com sucesso!");
+            }
+
         } catch (erro) {
-            toast.error("Erro ao cadastrar produto.");
+            toast.error("Erro ao salvar o produto.");
         }
     }
 
     return (
-        <div>
-            <Menu />
-            <Breadcrumbs items={[
-                { label: "Produto" },
-                { label: "Cadastrar" }
-            ]} />
 
-            <div style={{ marginTop: "40px", marginLeft: "10%", marginRight: "10%" }}>
+        <div>
+
+            <Menu />
+
+            {idProduto ? 
+
+                <Breadcrumbs items={[
+                    { label: "Produto" },
+                    { label: "Alterar" }
+                ]} />
+
+                : 
+
+                <Breadcrumbs items={[
+                    { label: "Produto" },
+                    { label: "Cadastrar" }
+                ]} />
+            }
+
+            <div style={{ marginTop: '40px', marginLeft: '10%', marginRight: '10%' }}>
+
                 <div className="overflow-x-auto shadow-sm">
 
-                    <div
-                        className="flex items-center justify-between mb-6"
-                        style={{ marginTop: "20px", marginLeft: "10px", marginRight: "10px" }}
-                    >
+                    <div className="flex items-center justify-between mb-6" style={{marginTop: '20px', marginLeft: '10px', marginRight: '10px'}}>
+
                         <h1 className="text-3xl font-bold text-gray-800">
-                            Novo Produto
+                            {idProduto ? "Alterar Produto" : "Novo Produto"}
                         </h1>
+
                     </div>
 
                     <div className="divider divider-info" />
 
-                    <div className="overflow-x-auto" style={{ padding: "30px" }}>
+                    <div className="overflow-x-auto" style={{padding: '30px'}}>
                         <form>
 
-                            <div className="flex w-full">
-                                <div className="card rounded-box grid grow p-8" style={{ padding: "30px" }}>
-                                    <fieldset className="fieldset w-full">
-                                        <label className="fieldset-legend" htmlFor="codigo">
-                                            Código
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="codigo"
-                                            className="input input-bordered w-full"
-                                            value={produto.codigo}
-                                            onChange={(e) =>
-                                                setProduto({
-                                                    ...produto,
-                                                    codigo: e.target.value
-                                                })
-                                            }
-                                        />
-                                    </fieldset>
-                                </div>
+                            <div className="flex w-full" >
+                                <div className="card rounded-box grid grow p-8" style={{padding: '10px'}}>
 
-                                <div className="card rounded-box grid grow p-8" style={{ padding: "30px" }}>
                                     <fieldset className="fieldset w-full">
-                                        <label className="fieldset-legend" htmlFor="titulo">
-                                            Título
-                                        </label>
+                                        <label className="fieldset-legend" htmlFor="nome">Título</label>
                                         <input
                                             type="text"
-                                            id="titulo"
+                                            id="nome"
                                             className="input input-bordered w-full"
                                             value={produto.titulo}
-                                            onChange={(e) =>
-                                                setProduto({
-                                                    ...produto,
-                                                    titulo: e.target.value
-                                                })
+                                            onChange={(e) => 
+                                                setProduto({ ...produto, titulo: e.target.value }) 
                                             }
                                         />
                                     </fieldset>
+                                    
                                 </div>
-                            </div>
+                                <div className="card rounded-box grid grow p-8" style={{padding: '10px'}}>
 
-                            <div className="flex w-full">
-                                <div className="card rounded-box grid grow p-8" style={{ padding: "30px" }}>
                                     <fieldset className="fieldset w-full">
-                                        <label className="fieldset-legend" htmlFor="descricao">
-                                            Descrição
-                                        </label>
-                                        <textarea
-                                            id="descricao"
-                                            className="textarea textarea-bordered w-full"
-                                            value={produto.descricao}
-                                            onChange={(e) =>
-                                                setProduto({
-                                                    ...produto,
-                                                    descricao: e.target.value
-                                                })
-                                            }
-                                        />
-                                    </fieldset>
-                                </div>
-
-                                <div className="card rounded-box grid grow p-8" style={{ padding: "30px" }}>
-                                    <fieldset className="fieldset w-full">
-                                        <label className="fieldset-legend" htmlFor="idCategoria">
-                                            Categoria
-                                        </label>
-
-                                        <select
-                                            id="idCategoria"
-                                            className="select select-bordered w-full"
-                                            value={produto.idCategoria}
-                                            onChange={(e) =>
-                                                setProduto({
-                                                    ...produto,
-                                                    idCategoria: e.target.value
-                                                })
-                                            }
-                                        >
-                                            <option value="">
-                                                Selecione uma categoria
-                                            </option>
-
-                                            {categorias.map(categoria => (
-                                                <option
-                                                    key={categoria.id}
-                                                    value={categoria.id}
-                                                >
-                                                    {categoria.descricao}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </fieldset>
-                                </div>
-                            </div>
-
-                            <div className="flex w-full">
-                                <div className="card rounded-box grid grow p-8" style={{ padding: "30px" }}>
-                                    <fieldset className="fieldset w-full">
-                                        <label className="fieldset-legend" htmlFor="valorUnitario">
-                                            Valor Unitário
-                                        </label>
+                                        <label className="fieldset-legend" htmlFor="nome">Código do Produto</label>
                                         <input
-                                            type="number"
-                                            step="0.01"
-                                            id="valorUnitario"
+                                            type="text"
+                                            id="nome"
+                                            className="input input-bordered w-full"
+                                            value={produto.codigo}
+                                            onChange={(e) => 
+                                                setProduto({ ...produto, codigo: e.target.value }) 
+                                            }
+                                        />
+                                    </fieldset>
+
+                                </div>
+                            </div>
+
+                            <div className="card rounded-box grid grow p-8" style={{padding: '10px'}}>
+
+                                <fieldset className="fieldset">
+                                    <legend className="fieldset-legend">Categoria</legend>
+                                    <select 
+                                        className="select  w-full"
+                                        value={produto.idCategoria}
+                                        onChange={(e) => 
+                                            setProduto({ ...produto, idCategoria: e.target.value }) 
+                                        }
+                                    >
+                                        <option value="">Selecione ...</option>
+                                        {listaCategoria.map((categoria, index) => (
+                                            <option key={index} value={categoria.id}>
+                                                {categoria.descricao}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </fieldset>
+
+                            </div>
+
+                            <div className="card rounded-box grid grow p-8" style={{padding: '10px'}}>
+
+                                <fieldset className="fieldset">
+                                    <legend className="fieldset-legend">Descrição</legend>
+                                    <textarea 
+                                        className="textarea h-48 w-full"
+                                        value={produto.descricao}
+                                        onChange={(e) => 
+                                            setProduto({ ...produto, descricao: e.target.value }) 
+                                        }
+                                    ></textarea>
+                                </fieldset>
+                                
+                            </div>
+
+                            <div className="flex w-full" >
+                                
+                                <div className="card rounded-box grid grow p-8" style={{padding: '10px'}}>
+
+                                    <fieldset className="fieldset w-full">
+                                        <label className="fieldset-legend" htmlFor="nome">Valor Unitário</label>
+                                        <input
+                                            type="text"
+                                            id="nome"
                                             className="input input-bordered w-full"
                                             value={produto.valorUnitario}
-                                            onChange={(e) =>
-                                                setProduto({
-                                                    ...produto,
-                                                    valorUnitario: e.target.value
-                                                })
+                                            onChange={(e) => 
+                                                setProduto({ ...produto, valorUnitario: e.target.value }) 
                                             }
                                         />
                                     </fieldset>
+                                    
                                 </div>
+                                <div className="card rounded-box grid grow p-8" style={{padding: '10px'}}>
 
-                                <div className="card rounded-box grid grow p-8" style={{ padding: "30px" }}>
                                     <fieldset className="fieldset w-full">
-                                        <label className="fieldset-legend" htmlFor="tempoEntregaMinimo">
-                                            Tempo de Entrega Mínimo
-                                        </label>
+                                        <label className="fieldset-legend" htmlFor="nome">Tempo Mínimo de Entrega (em minutos)</label>
                                         <input
-                                            type="number"
-                                            id="tempoEntregaMinimo"
+                                            type="text"
+                                            id="nome"
                                             className="input input-bordered w-full"
                                             value={produto.tempoEntregaMinimo}
-                                            onChange={(e) =>
-                                                setProduto({
-                                                    ...produto,
-                                                    tempoEntregaMinimo: e.target.value
-                                                })
+                                            onChange={(e) => 
+                                                setProduto({ ...produto, tempoEntregaMinimo: e.target.value }) 
                                             }
                                         />
                                     </fieldset>
+
                                 </div>
 
-                                <div className="card rounded-box grid grow p-8" style={{ padding: "30px" }}>
+                                <div className="card rounded-box grid grow p-8" style={{padding: '10px'}}>
+
                                     <fieldset className="fieldset w-full">
-                                        <label className="fieldset-legend" htmlFor="tempoEntregaMaximo">
-                                            Tempo de Entrega Máximo
-                                        </label>
+                                        <label className="fieldset-legend" htmlFor="nome">Tempo Máximo de Entrega (em minutos)</label>
                                         <input
-                                            type="number"
-                                            id="tempoEntregaMaximo"
+                                            type="text"
+                                            id="nome"
                                             className="input input-bordered w-full"
                                             value={produto.tempoEntregaMaximo}
-                                            onChange={(e) =>
-                                                setProduto({
-                                                    ...produto,
-                                                    tempoEntregaMaximo: e.target.value
-                                                })
+                                            onChange={(e) => 
+                                                setProduto({ ...produto, tempoEntregaMaximo: e.target.value }) 
                                             }
                                         />
                                     </fieldset>
+
                                 </div>
                             </div>
 
-                            <div className="flex w-full">
-                                <div className="card rounded-box grid grow p-8" style={{ padding: "30px" }}>
-                                    <div style={{ marginTop: "50px", textAlign: "left" }}>
+                            <div className="flex w-full" >
+                                <div className="card rounded-box grid grow p-8" style={{padding: '10px'}}>
+
+                                    <div style={{marginTop: '50px', textAlign: 'left'}}>
                                         <BackButton destino="/produto" />
                                     </div>
+                                    
                                 </div>
+                                <div className="card rounded-box grid grow p-8" style={{padding: '10px'}}>
 
-                                <div className="card rounded-box grid grow p-8" style={{ padding: "30px" }}>
-                                    <div style={{ marginTop: "50px", textAlign: "right" }}>
+                                    <div style={{marginTop: '50px', textAlign: 'right'}}>
                                         <SaveButton save={() => salvar()} />
                                     </div>
+
                                 </div>
                             </div>
 
@@ -267,7 +283,8 @@ export default function ProdutoForm() {
             </div>
 
             <Footer />
+
         </div>
+
     );
 }
-
