@@ -1,109 +1,198 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import Breadcrumbs from "../../../shared/components/Breadcrumbs";
 import CrudActions from "../../../shared/components/CrudActions";
 import Footer from "../../../shared/components/Footer";
 import Menu from "../../../shared/components/Menu";
 import NewButton from "../../../shared/components/NewButton";
-import { listar } from "../../../shared/services/crudService";
-import { MAPPING_CONTROLLER_PRODUTO } from "../service/produtoService";
+import { buscarPorId, listar, remover } from "../../../shared/services/crudService";
+import { MAPPING_CONTROLLER_PRODUTO } from "../../produto/service/produtoService";
 
 export default function ProdutoPage() {
+
     const [lista, setLista] = useState([]);
+    const navigate = useNavigate();
+    const [produto, setProduto] = useState({
+        id: null,
+        categoria: "",
+        codigo: "",
+        titulo: "",
+        descricao: "",
+        valorUnitario: "",
+        tempoEntregaMinimo: "",
+        tempoEntregaMaximo: ""
+    });
 
     useEffect(() => {
+
         carregar();
+
     }, []);
 
     async function carregar() {
+
         const data = await listar(MAPPING_CONTROLLER_PRODUTO);
         setLista(data);
     }
 
     function editar(id) {
-        console.log("Editar produto:", id);
+
+        navigate(`/produto-form/${id}`);
     }
 
     async function confirmarRemover(id) {
-        if (confirm("Deseja realmente excluir este produto?")) {
-            console.log("Remover produto:", id);
+
+        if (!confirm("Deseja realmente excluir este produto?")) {
+            return;
+        }
+
+        try {
+
+            await remover(MAPPING_CONTROLLER_PRODUTO, id);
+            await carregar();
+            toast.success("Produto removido com sucesso!");
+
+        } catch (erro) {
+
+            console.error(erro);
+            toast.error("Erro ao tentar remover o produto.");
         }
     }
 
+    async function detalhar(id) {
+
+        try {
+        
+            const data = await buscarPorId(
+                MAPPING_CONTROLLER_PRODUTO,
+                id
+            );
+
+            console.log(data);
+
+            setProduto({
+                id: data.id,
+                categoria: data.categoria ?? "",
+                codigo: data.codigo ?? "",
+                titulo: data.titulo ?? "",
+                descricao: data.descricao ?? "",
+                valorUnitario: data.foneFixo ?? "",
+                tempoEntregaMinimo: data.tempoEntregaMinimo ?? "",
+                tempoEntregaMaximo: data.tempoEntregaMaximo ?? ""
+            });
+
+            document.getElementById('modal-detalhar').showModal()
+
+        } catch (erro) {
+            toast.error("Erro ao carregar produto.");
+        }
+
+    }
+
     return (
+
         <div>
+
             <Menu />
+
             <Breadcrumbs items={[
                 { label: "Produto" },
                 { label: "Listar" }
             ]} />
 
-            <div style={{ marginTop: "40px", marginLeft: "10%", marginRight: "10%" }}>
+            <div style={{ marginTop: '40px', marginLeft: '10%', marginRight: '10%' }}>
+
                 <div className="overflow-x-auto shadow-sm">
 
-                    <div
-                        className="flex items-center justify-between mb-6"
-                        style={{ marginTop: "20px", marginLeft: "10px", marginRight: "10px" }}
-                    >
+                    <div className="flex items-center justify-between mb-6" style={{marginTop: '20px', marginLeft: '10px', marginRight: '10px'}}>
+
                         <h1 className="text-3xl font-bold text-gray-800">
                             Produtos
                         </h1>
+
                         <NewButton destino="/produto-form" />
+
                     </div>
 
                     <div className="divider divider-info" />
 
-                    <div className="overflow-x-auto" style={{ marginTop: "30px" }}>
+                    <div className="overflow-x-auto" style={{marginTop: '30px'}}>
                         <table className="table table-zebra">
                             <thead>
-                                <tr style={{ textAlign: "center" }}>
+                                <tr style={{textAlign: 'center'}}>
+                                    <th>Categoria</th>
                                     <th>Código</th>
                                     <th>Título</th>
-                                    <th>Descrição</th>
-                                    <th>Categoria</th>
                                     <th>Valor Unitário</th>
-                                    <th>Tempo Mínimo</th>
-                                    <th>Tempo Máximo</th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>
-
                             <tbody>
+
                                 {lista.map(produto => (
+
                                     <tr key={produto.id}>
-                                        <td style={{ textAlign: "center" }}>
-                                            {produto.codigo}
-                                        </td>
-                                        <td>{produto.titulo}</td>
-                                        <td>{produto.descricao}</td>
-                                        <td style={{ textAlign: "center" }}>
-                                            {produto.idCategoria}
-                                        </td>
-                                        <td style={{ textAlign: "center" }}>
-                                            {produto.valorUnitario}
-                                        </td>
-                                        <td style={{ textAlign: "center" }}>
-                                            {produto.tempoEntregaMinimo} min
-                                        </td>
-                                        <td style={{ textAlign: "center" }}>
-                                            {produto.tempoEntregaMaximo} min
-                                        </td>
-                                        <td style={{ textAlign: "center" }}>
+                                        <td style={{textAlign: 'center'}}>{produto.categoria.descricao}</td>
+                                        <td style={{textAlign: 'center'}}>{produto.codigo}</td>
+                                        <td style={{width: '50%'}}>{produto.titulo}</td>
+                                        <td style={{textAlign: 'center'}}>{produto.valorUnitario}</td>
+                                        <td style={{textAlign: 'center'}}>
+                                            
                                             <CrudActions
+                                                onDetail={() => detalhar(produto.id)}
                                                 onEdit={() => editar(produto.id)}
                                                 onDelete={() => confirmarRemover(produto.id)}
                                             />
                                         </td>
                                     </tr>
+
                                 ))}
+
                             </tbody>
                         </table>
                     </div>
-
                 </div>
             </div>
 
+            <dialog id="modal-detalhar" className="modal">
+                <div className="modal-box">
+                    
+                    <h3 className="font-bold text-lg">Dados do Cliente</h3>
+                    <div className="divider" />
+                    <p className="py-4"> 
+                        <strong>Categoria:</strong> {produto.categoria.descricao}
+                    </p>
+                    <p className="py-4"> 
+                        <strong>Código:</strong> {produto.codigo}
+                    </p>
+                    <p className="py-4">
+                        <strong>Título:</strong> {produto.titulo}
+                    </p>
+                    <p className="py-4">
+                        <strong>Descrição:</strong> {produto.descricao}
+                    </p>
+                    <p className="py-4">
+                        <strong>Valor Unitário:</strong> {produto.valorUnitario}
+                    </p>
+                    <p className="py-4">
+                        <strong>Tempo mínimo de Entrega:</strong> {produto.tempoEntregaMinimo}
+                    </p>
+                    <p className="py-4">
+                        <strong>Tempo mínimo de Máximo:</strong> {produto.tempoEntregaMaximo}
+                    </p>
+                    <div className="modal-action">
+                        <form method="dialog">
+                            {/* if there is a button in form, it will close the modal */}
+                            <button className="btn">Fechar</button>
+                        </form>
+                    </div>
+
+                </div>
+            </dialog>
+
             <Footer />
+
         </div>
     );
 }
-

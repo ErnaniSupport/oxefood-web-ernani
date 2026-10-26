@@ -12,6 +12,7 @@ import { buscarPorId, listar, remover} from "../../../shared/services/crudServic
 import { MAPPING_CONTROLLER_EMPRESA } from "../service/empresaService";
 
 export default function EmpresaPage() {
+    const navigate = useNavigate();
     const [lista, setLista] = useState([]);
 
     const [empresa, setEmpresa] = useState({
@@ -25,7 +26,7 @@ export default function EmpresaPage() {
         foneAlternativo: ""
     });
 
-    const navigate = useNavigate();
+ 
 
     useEffect(() => {
         carregar();
